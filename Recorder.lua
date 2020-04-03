@@ -170,7 +170,7 @@ local PLAYBACK_GBOX = gui.Groupbox( WINDOW, "Playback", 220, 158, 200, 0 )
 -- Main Menu Settings
 local SETTINGS_INDICATORS = gui.Checkbox( SETTINGS_GBOX, "settings.indicators", "Indicators", false )
 local SETTINGS_INDICATORCOLOR = gui.ColorPicker( SETTINGS_INDICATORS, "settings.indicatorcolor", "name", 255, 0, 0, 255 )
-local SETTINGS_SPEED = gui.Slider( SETTINGS_GBOX, "settings.speed", "Start Pos Speed", 50, 1, 100 )
+local SETTINGS_SPEED = gui.Slider( SETTINGS_GBOX, "settings.speed", "Start Pos Speed", 2, 1, 100 )
 local SETTINGS_DRAWPATH = gui.Checkbox( SETTINGS_GBOX, "settings.drawpath", "Draw Path", false )
 local SETTINGS_PATHCOLOR = gui.ColorPicker( SETTINGS_DRAWPATH, "settings.pathcolor", "", 255, 0, 0, 255 )
 local SETTINGS_DRAWSTART = gui.Checkbox( SETTINGS_GBOX, "settings.drawstart", "Draw Start", false )
