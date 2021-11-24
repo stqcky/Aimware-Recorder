@@ -3,7 +3,7 @@
 -- CHANGELOG:
 -- v1.2:
 -- * added enable setting
--- * added "ignore pitch" and "perfect silent angles" to the playback settings
+-- * added "yaw only" and "perfect silent angles" to the playback settings
 -- * added "nearby" to the draw filter
 -- * added max distance setting
 -- * added overwrite dialog
@@ -16,7 +16,7 @@
 -- * removed origin from non start / end record ticks
 -- * removed roll and upmove as they are not used
 -- * removed saved recordings list
--- * replace unload, load buttons with reload (reloads map's recordings)
+-- * replaced unload, load buttons with reload (reloads map's recordings)
 -- * changed settings window to a tab
 -- * changed delete dialog position
 -- * changed recording serialization (old recordings incompatible)
@@ -516,7 +516,6 @@ local function FindClosestRecording(localOrigin)
 				closest = record
 			end
 		end
-		::continue::
 	end
 
 	return closest
