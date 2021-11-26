@@ -1,6 +1,6 @@
 -- Movement Recorder by stacky and contributors
 
--- HOW TO PORT OLD RECORDING TO A v1.2 FORMAT:
+-- HOW TO PORT OLD RECORDING TO v1.2 FORMAT:
 -- 1. rename a file to have an extension ".mr.dat"
 -- 2. replace "\[\d+\]=\{\d+\},\r?\n" regex with ""
 -- 3. replace "\{\r?\n\}," regex with ""
@@ -158,7 +158,7 @@ end
 -- Settings
 
 local SETTINGS_ENABLE = gui.Checkbox(SETTINGS_GBOX, "settings.enable", "Enable", false)
-local SETTINGS_INDICATOR = gui.Checkbox(SETTINGS_GBOX, "settings.drawindicator", "Draw Indicator", false)
+local SETTINGS_INDICATOR = gui.Checkbox(SETTINGS_GBOX, "settings.drawindicator", "Draw Indicator", true)
 local SETTINGS_DRAWSTART = gui.Checkbox(SETTINGS_GBOX, "settings.drawstart", "Draw Start", true)
 local SETTINGS_STARTCOLOR =
 	gui.ColorPicker(SETTINGS_DRAWSTART, "settings.startcolor", "", 92, 92, 92, 192)
@@ -269,7 +269,7 @@ local PLAYBACK_SETTINGS_SWITCHBACK =
 local PLAYBACK_SETTINGS_PSILENT =
 	gui.Checkbox(PLAYBACK_SETTINGS, "playback.settings.psilent", "Perfect Silent Angles", false)
 local PLAYBACK_SETTINGS_YAWONLY =
-	gui.Checkbox(PLAYBACK_SETTINGS, "playback.settings.yawonly", "Yaw Only", true)
+	gui.Checkbox(PLAYBACK_SETTINGS, "playback.settings.yawonly", "Yaw Only", false)
 
 local PLAYBACK_AIMSPEED = gui.Slider(PLAYBACK_GBOX, "playback.aimspeed", "Aim Speed", 3, 1, 10)
 local PLAYBACK_MAXDIST = gui.Slider(PLAYBACK_GBOX, "playback.maxdist", "Max Distance", 250, 100, 500, 10)
@@ -352,7 +352,7 @@ local function LoadMapRecords()
 			string.find(recordingPath, "/" .. currentMap .. "/", 1, true) ~= nil then
 
 			local reader = file.Open(recordingPath, "r")
-			local tbl = loadstring("return " .. reader:Read())()
+			local tbl = load("return " .. reader:Read(), nil, "t", {})()
 			reader:Close()
 			
 			loadedRecordings[#loadedRecordings + 1] = tbl
@@ -674,7 +674,7 @@ end
 
 local function StartRecording(localPlayer)
 	local vecVelocity = localPlayer:GetPropVector("localdata", "m_vecVelocity[0]")
-	if 1 < vecVelocity:Length() then
+	if 0 < vecVelocity:Length() then
 		return
 	end
 	
