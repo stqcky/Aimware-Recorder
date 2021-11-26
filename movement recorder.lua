@@ -674,7 +674,8 @@ end
 
 local function StartRecording(localPlayer)
 	local vecVelocity = localPlayer:GetPropVector("localdata", "m_vecVelocity[0]")
-	if 0 < vecVelocity:Length() then
+	-- 1.1 because our velocity is bigger than 1 when using micromoving desync
+	if 1.1 < vecVelocity:Length() then
 		return
 	end
 	
