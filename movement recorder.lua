@@ -1,10 +1,5 @@
 -- Movement Recorder by stacky and contributors
 
--- HOW TO PORT OLD RECORDING TO v1.2 FORMAT:
--- 1. rename a file to have an extension ".mr.dat"
--- 2. replace "\[\d+\]=\{\d+\},\r?\n" regex with ""
--- 3. replace "\{\r?\n\}," regex with ""
-
 local VERSION = "v1.2"
 local printPrefix = "[Movement Recorder] "
 print(printPrefix .. VERSION)
