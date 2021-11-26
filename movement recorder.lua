@@ -1,30 +1,6 @@
 -- Movement Recorder by stacky and contributors
 
--- CHANGELOG:
--- v1.2:
--- * added enable setting
--- * added "yaw only" and "perfect silent angles" to the playback settings
--- * added "nearby" to the draw filter
--- * added max distance setting
--- * added overwrite dialog
--- * made start position appear smoothly
--- * made map's recordings load automatically (from a folder named map's name)
--- * ignore idle ticks at the start and at the end (record / playback)
--- * temporary disable settings that may interfere during recording / playback: airstrafe, desync etc
--- * changed start indicator, now it's an arrow pointing to the end location
--- * removed "draw path" (i can't imagine anyone using it, plus it's ineffective)
--- * removed origin from non start / end record ticks
--- * removed roll and upmove as they are not used
--- * removed saved recordings list
--- * replaced unload, load buttons with reload (reloads map's recordings)
--- * changed settings window to a tab
--- * changed delete dialog position
--- * changed recording serialization (old recordings incompatible)
--- * removed indicator color setting
--- * updated recordings, deleted duplicates, re-recorded some jumps, added new ones
--- * other improvements
-
--- HOW TO PORT OLD RECORDING TO A NEW FORMAT:
+-- HOW TO PORT OLD RECORDING TO A v1.2 FORMAT:
 -- 1. rename a file to have an extension ".mr.dat"
 -- 2. replace "\[\d+\]=\{\d+\},\r?\n" regex with ""
 -- 3. replace "\{\r?\n\}," regex with ""
@@ -55,8 +31,8 @@ local fileExt = ".mr.dat" -- i've tried removing ".dat" but file.Enumerate won't
 local fileExtEscaped = string.gsub(fileExt, "%.", "%%.")
 
 local recordingsPaths = {}
-local loadedRecordings = {{}}
-local loadedRecordingsNames = {"local"}
+local loadedRecordings = { {} }
+local loadedRecordingsNames = { "local" }
 local visibleRecordings = {}
 
 local isRecording = false
@@ -362,8 +338,8 @@ end
 SetRecordingsFolder()
 
 local function LoadMapRecords()
-	loadedRecordings = {{}}
-	loadedRecordingsNames = {"local"}
+	loadedRecordings = { {} }
+	loadedRecordingsNames = { "local" }
 	
 	if currentMap == nil or currentMap == "" then
 		return
@@ -506,9 +482,9 @@ local function FindClosestRecording(localOrigin)
 	for i = 1, #loadedRecordings do
 		local record = loadedRecordings[i]
 		if record ~= nil and #record ~= 0 then
-			local recordOrigin = {GetRecordTickOrigin(record[1])}
+			local recordOrigin = { GetRecordTickOrigin(record[1]) }
 			local dist = vector.Distance(
-				{localOrigin["x"], localOrigin["y"], localOrigin["z"]},
+				{ localOrigin["x"], localOrigin["y"], localOrigin["z"] },
 				recordOrigin
 			)
 			if dist < minDistance and math_abs(localOrigin["z"] - recordOrigin[3]) < 25 then
@@ -548,7 +524,7 @@ local function FindVisibleRecordings(localOrigin, eyePos)
 end
 
 local function IsIdleRecordTick(tick)
-	local tickMoves = {GetRecordTickMoves(tick)}
+	local tickMoves = { GetRecordTickMoves(tick) }
 	local tickButtons = GetRecordTickButtons(tick)
 	
 	return (tickMoves[1] == 0 and
@@ -624,14 +600,14 @@ local function DrawIndicator()
 end
 
 local function DrawStart(localOrigin, ticks, name)
-	local startOrigin = {GetRecordTickOrigin(ticks[1])}
+	local startOrigin = { GetRecordTickOrigin(ticks[1]) }
 	
 	local dist = vector.Distance(
-		{localOrigin["x"], localOrigin["y"], localOrigin["z"]},
+		{ localOrigin["x"], localOrigin["y"], localOrigin["z"] },
 		startOrigin
 	)
 
-	local startColor = {SETTINGS_STARTCOLOR:GetValue()}
+	local startColor = { SETTINGS_STARTCOLOR:GetValue() }
 	local alpha = startColor[4]
 
 	if SETTINGS_DRAWFILTER_DISTCHECK:GetValue() then
@@ -652,31 +628,31 @@ local function DrawStart(localOrigin, ticks, name)
 		return
 	end
 
-	local screenStart = {client.WorldToScreen(Vector3(startOrigin[1], startOrigin[2], startOrigin[3]))}
+	local screenStart = { client.WorldToScreen(Vector3(startOrigin[1], startOrigin[2], startOrigin[3])) }
 	if screenStart[1] == nil then
 		return
 	end
 	
 	-- don't draw triangles we can't see
 	if dist < 1000 then
-		local endOrigin = {GetRecordTickOrigin(ticks[#ticks])}
-		local originDelta = {vector.Subtract(endOrigin, startOrigin)}
+		local endOrigin = { GetRecordTickOrigin(ticks[#ticks]) }
+		local originDelta = { vector.Subtract(endOrigin, startOrigin) }
 		
 		originDelta[3] = 0
 		
-		local deltaDir = {vector.Normalize(originDelta)}
-		local multipliedDeltaDir = {vector.Multiply(deltaDir, 20)}
+		local deltaDir = { vector.Normalize(originDelta) }
+		local multipliedDeltaDir = { vector.Multiply(deltaDir, 20) }
 		
-		local croppedEnd = {vector.Add(startOrigin, multipliedDeltaDir)}
-		local screenEnd = {client.WorldToScreen(Vector3(croppedEnd[1], croppedEnd[2], croppedEnd[3]))}
+		local croppedEnd = { vector.Add(startOrigin, multipliedDeltaDir) }
+		local screenEnd = { client.WorldToScreen(Vector3(croppedEnd[1], croppedEnd[2], croppedEnd[3])) }
 
-		local rotationLeft = {Vector2DRotate({deltaDir[1] * 15, deltaDir[2] * 15}, 135)}
-		local left = {vector.Add(startOrigin, {rotationLeft[1], rotationLeft[2], 0})}
-		local screenLeft = {client.WorldToScreen(Vector3(left[1], left[2], left[3]))}
+		local rotationLeft = { Vector2DRotate({deltaDir[1] * 15, deltaDir[2] * 15}, 135) }
+		local left = { vector.Add(startOrigin, { rotationLeft[1], rotationLeft[2], 0}) }
+		local screenLeft = { client.WorldToScreen(Vector3(left[1], left[2], left[3])) }
 		
-		local rotationRight = {Vector2DRotate({deltaDir[1] * 15, deltaDir[2] * 15}, -135)}
-		local right = {vector.Add(startOrigin, {rotationRight[1], rotationRight[2], 0})}
-		local screenRight = {client.WorldToScreen(Vector3(right[1], right[2], right[3]))}
+		local rotationRight = { Vector2DRotate({deltaDir[1] * 15, deltaDir[2] * 15}, -135) }
+		local right = { vector.Add(startOrigin, { rotationRight[1], rotationRight[2], 0}) }
+		local screenRight = { client.WorldToScreen(Vector3(right[1], right[2], right[3])) }
 		
 		if screenEnd[1] ~= nil and screenLeft[1] ~= nil and screenRight[1] ~= nil then
 			draw.Color(startColor[1], startColor[2], startColor[3], alpha)
@@ -782,6 +758,13 @@ callbacks.Register("Draw", function()
 
 	local localPlayer = entities.GetLocalPlayer()
 	if not localPlayer or not localPlayer:IsAlive() then
+		-- don't save recording if we died
+		if isRecording or isPlayback then
+			loadedRecordings[1] = {}
+			RestoreInterferingSettings()
+			isRecording = false
+			isPlayback = false
+		end
 		return
 	end
 	
@@ -860,12 +843,12 @@ end
 
 local function GoToStart(localPlayer, cmd)
 	local localOrigin = localPlayer:GetAbsOrigin()
-	local startOrigin = {GetRecordTickOrigin(playbackTicks[1])}
+	local startOrigin = { GetRecordTickOrigin(playbackTicks[1]) }
 	
-	local deltaXY = {vector.Subtract(
-		{startOrigin[1], startOrigin[2], 0},
-		{localOrigin["x"], localOrigin["y"], 0}
-	)}
+	local deltaXY = { vector.Subtract(
+		{ startOrigin[1], startOrigin[2], 0 },
+		{ localOrigin["x"], localOrigin["y"], 0 }
+	) }
 
 	local distXY = vector.Length(deltaXY)
 	
@@ -874,7 +857,7 @@ local function GoToStart(localPlayer, cmd)
 		cmd:SetForwardMove(clamp(distXY * 7.5, -cl_forwardspeed, cl_forwardspeed))
 		cmd:SetSideMove(0)
 		
-		local angles = {vector.Angles(deltaXY)}
+		local angles = { vector.Angles(deltaXY) }
 		CorrectMovement(cmd, angles[2])
 	else
 		local vecVelocity = localPlayer:GetPropVector("localdata", "m_vecVelocity[0]")
@@ -886,18 +869,18 @@ end
 
 local function SetStartAngles()
 	local localViewangles = engine.GetViewAngles()
-	local startAngles = {GetRecordTickViewangles(playbackTicks[playbackIterator])} -- first non idle angles
+	local startAngles = { GetRecordTickViewangles(playbackTicks[playbackIterator])} -- first non idle angles
 
-	local delta = {vector.Subtract(
+	local delta = { vector.Subtract(
 		startAngles,
-		{localViewangles["x"], localViewangles["y"], localViewangles["z"]}
-	)}
+		{ localViewangles["x"], localViewangles["y"], localViewangles["z"] }
+	) }
 	
 	if PLAYBACK_SETTINGS_YAWONLY:GetValue() then
 		delta[1] = 0
 	end
 	
-	local clampedDelta = {AnglesNormalize(delta)}
+	local clampedDelta = { AnglesNormalize(delta) }
 	
 	local deltaLen = vector.Length(clampedDelta)
 		
@@ -906,20 +889,20 @@ local function SetStartAngles()
 		return
 	end
 	
-	local normalizedDelta = {vector.Normalize(clampedDelta)}
-	local multipliedDelta = {vector.Multiply(normalizedDelta, PLAYBACK_AIMSPEED:GetValue())}
+	local normalizedDelta = { vector.Normalize(clampedDelta) }
+	local multipliedDelta = { vector.Multiply(normalizedDelta, PLAYBACK_AIMSPEED:GetValue()) }
 		
-	local newAngles = {vector.Add(
-		{localViewangles["x"], localViewangles["y"], localViewangles["z"]},
+	local newAngles = { vector.Add(
+		{ localViewangles["x"], localViewangles["y"], localViewangles["z"] },
 		multipliedDelta
-	)}
+	) }
 
 	engine.SetViewAngles(EulerAngles(AnglesNormalize(newAngles)))
 end
 
 local function PlaybackTick(tick, cmd)
-	local tickViewangles = {GetRecordTickViewangles(tick)}
-	local tickMoves = {GetRecordTickMoves(tick)}
+	local tickViewangles = { GetRecordTickViewangles(tick) }
+	local tickMoves = { GetRecordTickMoves(tick) }
 	local tickButtons = GetRecordTickButtons(tick)
 
 	local pitch = (PLAYBACK_SETTINGS_YAWONLY:GetValue() and engine.GetViewAngles()["pitch"] or tickViewangles[1])
@@ -958,10 +941,7 @@ callbacks.Register("CreateMove", function(cmd)
 	end
 
 	local localPlayer = entities.GetLocalPlayer()
-	-- CreateMove callback doesn't get called if local player is dead, so skip IsAlive check
 	if not localPlayer then
-		isPlayback = false
-		isRecording = false
 		return
 	end
 	
