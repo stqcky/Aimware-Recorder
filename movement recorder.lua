@@ -76,11 +76,9 @@ local CONTENTS_SOLID 	= 0x1 -- an eye is never valid in a solid
 local CONTENTS_OPAQUE	= 0x80 -- things that cannot be seen through (may be non-solid though)
 local CONTENTS_IGNORE_NODRAW_OPAQUE = 0x2000 -- ignore CONTENTS_OPAQUE on surfaces that have SURF_NODRAW
 local CONTENTS_MOVEABLE	= 0x4000 -- hits entities which are MOVETYPE_PUSH (doors, plats, etc.)
-local CONTENTS_MONSTER	= 0x2000000 -- players iirc
 
 local MASK_OPAQUE = bit.bor(CONTENTS_SOLID, CONTENTS_MOVEABLE, CONTENTS_OPAQUE) -- everything that blocks lighting
-local MASK_OPAQUE_AND_NPCS = bit.bor(MASK_OPAQUE, CONTENTS_MONSTER) -- everything that blocks lighting, but with monsters added
-local MASK_VISIBLE_AND_NPCS = bit.bor(MASK_OPAQUE_AND_NPCS, CONTENTS_IGNORE_NODRAW_OPAQUE) -- everything that blocks line of sight for players, but with monsters added
+local MASK_VISIBLE = bit.bor(MASK_OPAQUE, CONTENTS_IGNORE_NODRAW_OPAQUE) -- everything that blocks line of sight for players
 
 local recordTickViewanglesIndex = 1
 local recordTickMovesIndex = recordTickViewanglesIndex + 3
@@ -510,7 +508,7 @@ local function FindVisibleRecordings(localOrigin, eyePos)
 				end
 			end
 			
-			local fract = engine.TraceLine(eyePos, recordStart, MASK_VISIBLE_AND_NPCS).fraction
+			local fract = engine.TraceLine(eyePos, recordStart, MASK_VISIBLE).fraction
 			if fract == 1 then
 				visible[#visible + 1] = i
 			end
