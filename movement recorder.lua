@@ -755,10 +755,12 @@ local function StopPlayback(localPlayer)
 	isPlayback = false
 end
 
-client.AllowListener("server_spawn")
+client.AllowListener("game_newmap")
 
 callbacks.Register("FireGameEvent", function(event)
-	if event:GetName() == "server_spawn" then
+	local eventName = event:GetName()
+
+	if eventName == "game_newmap" then
 		local newMap = event:GetString("mapname")
 		if currentMap ~= newMap then
 			currentMap = newMap
