@@ -52,7 +52,7 @@ settingSave:SetHeight(28)
 
 local settingPlaybackGroup = gui.Groupbox(settingTab, "Playback", 328, 236, 296, 0)
 local settingPlaybackKey = gui.Keybox(settingPlaybackGroup, "playback.key", "Playback Key", 0)
-local settingAimSpeed = gui.Slider(settingPlaybackGroup, "playback.aimspeed", "Aim Speed", 3, 1, 10)
+local settingAimSpeed = gui.Slider(settingPlaybackGroup, "playback.aimspeed", "Aim Speed", 3, 1, 10, 0.5)
 local settingMaxDist = gui.Slider(settingPlaybackGroup, "playback.maxdist", "Max Distance", 250, 100, 500, 10)
 
 local settingPlaybackSettingsGroup = gui.Multibox(settingPlaybackGroup, "Playback Settings")
@@ -92,7 +92,7 @@ local function Dialog(text, fnYes, fnNo)
 	dialogText:SetText(text)
 	dialogYesFn = fnYes
 	dialogNoFn = fnNo
-	
+
 	dialog:SetActive(true)
 end
 
