@@ -13,16 +13,19 @@ local settingTab = gui.Tab(refMisc, "movrec", "Movement Recorder")
 
 local settingSettingsGroup = gui.Groupbox(settingTab, "Settings", 16, 16, 296, 0)
 local settingEnable = gui.Checkbox(settingSettingsGroup, "settings.enable", "Enable", true)
-local settingDrawIndicator = gui.Checkbox(settingSettingsGroup, "settings.drawindicator", "Draw Indicator", true)
-local settingDrawStart = gui.Checkbox(settingSettingsGroup, "settings.drawstart", "Draw Start", true)
-local settingStartColor = gui.ColorPicker(settingDrawStart, "color", "", 92, 92, 92, 192)
-local settingStartStyle = gui.Combobox(settingSettingsGroup, "settings.drawstartstyle", "Start Style", "Outlined", "Filled")
-settingStartStyle:SetValue(1)
-local settingStartFilter = gui.Multibox(settingSettingsGroup, "Start Filter")
-local settingVisCheck = gui.Checkbox(settingStartFilter, "settings.drawstartfilter.vischeck", "Visible", true)
-local settingDistCheck = gui.Checkbox(settingStartFilter, "settings.drawstartfilter.distcheck", "Nearby", true)
+local settingDrawIndicator = gui.Checkbox(settingSettingsGroup, "settings.drawindicator", "Draw Playback Indicator", true)
+local settingColorIndicator = gui.ColorPicker(settingDrawIndicator, "color.indicator", "", 255, 255, 255, 255)
+local settingColorArrowVisible = gui.ColorPicker(settingSettingsGroup, "color.arrow.visible", "Arrow Visible", 92, 92, 92, 192)
+local settingColorArrowOccluded = gui.ColorPicker(settingSettingsGroup, "color.arrow.occluded", "Arrow Occluded", 92, 92, 92, 92)
+local settingColorTextVisible = gui.ColorPicker(settingSettingsGroup, "color.text.visible", "Text Visible", 255, 255, 255, 255)
+local settingColorTextOccluded = gui.ColorPicker(settingSettingsGroup, "color.text.occluded", "Text Occluded", 255, 255, 255, 64)
+local settingArrowStyle = gui.Combobox(settingSettingsGroup, "settings.arrowstyle", "Arrow Style", "Outlined", "Filled")
+settingArrowStyle:SetValue(1)
+local settingFilter = gui.Multibox(settingSettingsGroup, "Filter")
+local settingVisCheck = gui.Checkbox(settingFilter, "settings.filter.vischeck", "Visible", true)
+local settingDistCheck = gui.Checkbox(settingFilter, "settings.filter.distcheck", "Nearby", true)
 
-local settingLoadedGroup = gui.Groupbox(settingTab, "Loaded Recordings", 16, 300, 296, 0)
+local settingLoadedGroup = gui.Groupbox(settingTab, "Loaded Recordings", 16, 400, 296, 0)
 local settingLoaded = gui.Listbox(settingLoadedGroup, "recordings.loaded", 300)
 
 local Delete = nil -- forward declaration
@@ -52,8 +55,8 @@ settingSave:SetHeight(28)
 
 local settingPlaybackGroup = gui.Groupbox(settingTab, "Playback", 328, 236, 296, 0)
 local settingPlaybackKey = gui.Keybox(settingPlaybackGroup, "playback.key", "Playback Key", 0)
-local settingAimSpeed = gui.Slider(settingPlaybackGroup, "playback.aimspeed", "Aim Speed", 3, 1, 10, 0.5)
-local settingMaxDist = gui.Slider(settingPlaybackGroup, "playback.maxdist", "Max Distance", 250, 100, 500, 10)
+local settingAimSpeed = gui.Slider(settingPlaybackGroup, "playback.aimspeed", "Aim Speed", 2, 1, 10, 0.5)
+local settingMaxDist = gui.Slider(settingPlaybackGroup, "playback.maxdist", "Max Distance", 300, 100, 500, 10)
 
 local settingPlaybackSettingsGroup = gui.Multibox(settingPlaybackGroup, "Playback Settings")
 local settingSwitchKnife = gui.Checkbox(settingPlaybackSettingsGroup, "playback.settings.switchknife", "Switch To Knife", true)
@@ -109,7 +112,9 @@ local recordTickElementCount = recordTickOriginIndex + 3
 local recordingsPaths = {}
 local loadedRecordings = { {} }
 local loadedRecordingsNames = { "local" }
-local visibleRecordings = {}
+local recordingsVisibility = {}
+
+local lastVisCheckTime = -1.0
 
 local fileExt = ".mr.dat" -- i've tried removing ".dat" but file.Enumerate won't pick it up
 local fileExtEscaped = string.gsub(fileExt, "%.", "%%.")
@@ -511,9 +516,8 @@ local function FindClosestRecording(localOrigin)
 	return closest
 end
 
-local function FindVisibleRecordings(localOrigin, eyePos)
-	local visible = {}
-
+local function CheckRecordingsVisibility(localOrigin, eyePos)
+	recordingsVisibility = {}
 	for i = 1, #loadedRecordings do
 		local record = loadedRecordings[i]
 		if record ~= nil and #record ~= 0 then
@@ -527,14 +531,10 @@ local function FindVisibleRecordings(localOrigin, eyePos)
 			end
 
 			local fract = engine.TraceLine(eyePos, recordStart, MASK_VISIBLE).fraction
-			if fract == 1 then
-				visible[#visible + 1] = i
-			end
+			recordingsVisibility[i] = (fract == 1)
 		end
 		::continue::
 	end
-
-	return visible
 end
 
 local function IsIdleRecordTick(tick)
@@ -603,7 +603,7 @@ local function DrawIndicator()
 		end
 	end
 
-	draw.Color(255, 255, 255, 255)
+	draw.Color(settingColorIndicator:GetValue())
 	draw.SetFont(fontIndicator)
 
 	local screenW, screenH = draw.GetScreenSize()
@@ -613,7 +613,7 @@ local function DrawIndicator()
 	draw.TextShadow(x, 100, text)
 end
 
-local function DrawStart(localOrigin, ticks, name)
+local function DrawStart(localOrigin, ticks, name, arrowColor, textColor)
 	local startOrigin = { GetRecordTickOrigin(ticks[1]) }
 
 	local dist = vector.Distance(
@@ -621,8 +621,8 @@ local function DrawStart(localOrigin, ticks, name)
 		startOrigin
 	)
 
-	local startColor = { settingStartColor:GetValue() }
-	local alpha = startColor[4]
+	local startAlpha = arrowColor[4]
+	local textAlpha = textColor[4]
 
 	if settingDistCheck:GetValue() then
 		if dist >= settingMaxDist:GetValue() then
@@ -634,11 +634,12 @@ local function DrawStart(localOrigin, ticks, name)
 		local alphaDistDiff = dist - alphaDistOpaque
 
 		if 0 < alphaDistDiff then
-			alpha = startColor[4] - alphaDistDiff * (startColor[4] / alphaStep)
+			startAlpha = arrowColor[4] - alphaDistDiff * (arrowColor[4] / alphaStep)
+			textAlpha = textColor[4] - alphaDistDiff * (textColor[4] / alphaStep)
 		end
 	end
 
-	if alpha < 1 then
+	if startAlpha < 1 and textAlpha < 1 then
 		return
 	end
 
@@ -647,8 +648,8 @@ local function DrawStart(localOrigin, ticks, name)
 		return
 	end
 
-	-- don't draw triangles we can't see
-	if dist < 1000 then
+	-- don't draw triangles if they are too far
+	if dist < 800 then
 		local endOrigin = { GetRecordTickOrigin(ticks[#ticks]) }
 		local originDelta = { vector.Subtract(endOrigin, startOrigin) }
 
@@ -669,8 +670,8 @@ local function DrawStart(localOrigin, ticks, name)
 		local screenRight = { client.WorldToScreen(Vector3(right[1], right[2], right[3])) }
 
 		if screenEnd[1] ~= nil and screenLeft[1] ~= nil and screenRight[1] ~= nil then
-			draw.Color(startColor[1], startColor[2], startColor[3], alpha)
-			if settingStartStyle:GetValue() == 1 then
+			draw.Color(arrowColor[1], arrowColor[2], arrowColor[3], startAlpha)
+			if settingArrowStyle:GetValue() == 1 then
 				draw.Triangle(screenEnd[1], screenEnd[2], screenLeft[1], screenLeft[2], screenRight[1], screenRight[2])
 			else
 				draw.Line(screenEnd[1], screenEnd[2], screenLeft[1], screenLeft[2])
@@ -680,7 +681,7 @@ local function DrawStart(localOrigin, ticks, name)
 		end
 	end
 
-	draw.Color(255, 255, 255, alpha)
+	draw.Color(textColor[1], textColor[2], textColor[3], textAlpha)
 	draw.SetFont(fontStart)
 	local textW, textH = draw.GetTextSize(name)
 	draw.TextShadow(screenStart[1] - (textW * 0.5), screenStart[2] - textH, name)
@@ -764,6 +765,7 @@ callbacks.Register("FireGameEvent", function(event)
 		local newMap = event:GetString("mapname")
 		if currentMap ~= newMap then
 			currentMap = newMap
+			lastVisCheckTime = -1.0
 			LoadMapRecords()
 		end
 	end
@@ -816,20 +818,14 @@ callbacks.Register("Draw", function()
 		DrawIndicator()
 	end
 
-	if not isRecording and settingDrawStart:GetValue() then
-		if settingVisCheck:GetValue() then
-			for i = 1, #visibleRecordings do
-				local index = visibleRecordings[i]
-				local record = loadedRecordings[index]
-				if record ~= nil and #record ~= 0 then
-					DrawStart(localPlayer:GetAbsOrigin(), record, loadedRecordingsNames[index])
-				end
-			end
-		else
-			for i = 1, #loadedRecordings do
-				local record = loadedRecordings[i]
-				if record ~= nil and #record ~= 0 then
-					DrawStart(localPlayer:GetAbsOrigin(), record, loadedRecordingsNames[i])
+	if not isRecording then
+		for i = 1, #loadedRecordings do
+			local record = loadedRecordings[i]
+			if record ~= nil and #record ~= 0 then
+				if recordingsVisibility[i] then
+					DrawStart(localPlayer:GetAbsOrigin(), record, loadedRecordingsNames[i], { settingColorArrowVisible:GetValue() }, { settingColorTextVisible:GetValue() })
+				elseif not settingVisCheck:GetValue() then
+					DrawStart(localPlayer:GetAbsOrigin(), record, loadedRecordingsNames[i], { settingColorArrowOccluded:GetValue() }, { settingColorTextOccluded:GetValue() })
 				end
 			end
 		end
@@ -967,13 +963,18 @@ callbacks.Register("CreateMove", function(cmd)
 		return
 	end
 
-	if not isRecording and settingVisCheck:GetValue() then
+	if not isRecording then
 		local localOrigin = localPlayer:GetAbsOrigin()
 
 		local eyePos = Vector3(localOrigin["x"], localOrigin["y"], localOrigin["z"]) -- copy
 		eyePos["z"] = eyePos["z"] + localPlayer:GetPropFloat("localdata", "m_vecViewOffset[2]")
 
-		visibleRecordings = FindVisibleRecordings(localOrigin, eyePos)
+		local curTime = globals.CurTime()
+		
+		if (lastVisCheckTime + 0.1) < curTime then
+			lastVisCheckTime = curTime
+			CheckRecordingsVisibility(localOrigin, eyePos)
+		end
 	end
 
 	if isRecording then
