@@ -2,7 +2,7 @@
 
 local printPrefix = "[Movement Recorder] "
 
-local VERSION = "v1.2"
+local VERSION = "v1.2.1"
 print(printPrefix .. VERSION)
 
 -- GUI stuff
@@ -373,7 +373,7 @@ local originAtStart = false
 local viewanglesAtStart = false
 
 local fontStart = draw.CreateFont("Tahoma", 12, 800)
-local fontIndicator = draw.CreateFont("Tahoma", 28, 800)
+local fontIndicator = draw.CreateFont("Tahoma", 22, 800)
 
 local cl_forwardspeed = tonumber(client.GetConVar("cl_forwardspeed"))
 local cl_sidespeed = tonumber(client.GetConVar("cl_sidespeed"))
