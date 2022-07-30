@@ -329,34 +329,37 @@ local bit_bnot = bit.bnot
 -- end of optimization stuff
 
 -- ffi stuff
+-- uncomment when FFI is back
 
-ffi.cdef[[
-	typedef int				HMODULE;
-	typedef const char*		LPCSTR;
-	typedef int (__stdcall* FARPROC)();
+-- ffi.cdef[[
+	-- typedef int				HMODULE;
+	-- typedef const char*		LPCSTR;
+	-- typedef int (__stdcall* FARPROC)();
 
-	HMODULE GetModuleHandleA(LPCSTR lpModuleName);
-	FARPROC GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
+	-- HMODULE GetModuleHandleA(LPCSTR lpModuleName);
+	-- FARPROC GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
 
-	typedef bool (__thiscall* ReturnBoolNoArgsFn)(void*);
+	-- typedef bool (__thiscall* ReturnBoolNoArgsFn)(void*);
 
-	typedef void* (* CreateInterfaceFn)(const char* pName, int* pReturnCode);
-]]
+	-- typedef void* (* CreateInterfaceFn)(const char* pName, int* pReturnCode);
+-- ]]
 
-local function GetInterface(mod, interface)
-    return ffi.cast("CreateInterfaceFn", ffi.C.GetProcAddress(ffi.C.GetModuleHandleA(mod), "CreateInterface"))(interface, nil)
-end
+-- local function GetInterface(mod, interface)
+    -- return ffi.cast("CreateInterfaceFn", ffi.C.GetProcAddress(ffi.C.GetModuleHandleA(mod), "CreateInterface"))(interface, nil)
+-- end
 
-local function GetVF(ppVT, type, index)
-	return ffi.cast(type, ffi.cast("void***", ppVT)[0][index])
-end
+-- local function GetVF(ppVT, type, index)
+	-- return ffi.cast(type, ffi.cast("void***", ppVT)[0][index])
+-- end
 
-local EngineClient = GetInterface("engine.dll", "VEngineClient014")
-local EngineClient__Con_IsVisible = GetVF(EngineClient, "ReturnBoolNoArgsFn", 11)
+-- local EngineClient = GetInterface("engine.dll", "VEngineClient014")
+-- local EngineClient__Con_IsVisible = GetVF(EngineClient, "ReturnBoolNoArgsFn", 11)
 
 local function IsTyping()
 	local cl_mouseenable = tonumber(client.GetConVar("cl_mouseenable"))
-	return (cl_mouseenable == 0 or EngineClient__Con_IsVisible(EngineClient))
+	return (cl_mouseenable == 0 
+		-- or EngineClient__Con_IsVisible(EngineClient) -- uncomment when FFI is back
+	)
 end
 
 -- end of ffi stuff
